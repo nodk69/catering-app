@@ -1,8 +1,16 @@
 package com.example.food.service;
 
-import com.example.food.dto.*;
-import com.example.food.entity.*;
-import com.example.food.repository.*;
+import com.example.food.dto.cart.CartItemRequest;
+import com.example.food.dto.cart.CartItemResponse;
+import com.example.food.dto.cart.CartResponse;
+import com.example.food.entity.Cart;
+import com.example.food.entity.CateringService;
+import com.example.food.entity.MenuItem;
+import com.example.food.entity.Users;
+import com.example.food.repository.CartRepository;
+import com.example.food.repository.CateringServiceRepo;
+import com.example.food.repository.MenuItemRepo;
+import com.example.food.repository.UserRepo;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -10,7 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor

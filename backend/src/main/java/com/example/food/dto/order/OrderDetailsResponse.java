@@ -1,5 +1,7 @@
-package com.example.food.dto;
+package com.example.food.dto.order;
 
+import com.example.food.dto.common.ServiceInfo;
+import com.example.food.dto.customer.CustomerInfo;
 import lombok.Builder;
 import lombok.Data;
 

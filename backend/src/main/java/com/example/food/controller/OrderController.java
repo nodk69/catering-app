@@ -1,8 +1,8 @@
 package com.example.food.controller;
 
-import com.example.food.dto.ApiResponse;
-import com.example.food.dto.OrderResponse;
-import com.example.food.dto.PlaceOrderRequest;
+import com.example.food.dto.common.ApiResponse;
+import com.example.food.dto.order.OrderResponse;
+import com.example.food.dto.order.PlaceOrderRequest;
 import com.example.food.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;

@@ -1,7 +1,7 @@
 package com.example.food.service;
 
-import com.example.food.dto.BulkMenuItemRequest;
-import com.example.food.dto.MenuItemRequest;
+import com.example.food.dto.menu.BulkMenuItemRequest;
+import com.example.food.dto.menu.MenuItemRequest;
 import com.example.food.entity.CateringService;
 import com.example.food.entity.MenuItem;
 import com.example.food.repository.CateringServiceRepo;

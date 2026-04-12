@@ -1,10 +1,10 @@
 package com.example.food.controller;
 
 
-import com.example.food.dto.LoginRequest;
-import com.example.food.dto.LoginResponse;
-import com.example.food.dto.RegisterRequest;
-import com.example.food.dto.UserResponse;
+import com.example.food.dto.auth.LoginRequest;
+import com.example.food.dto.auth.LoginResponse;
+import com.example.food.dto.auth.RegisterRequest;
+import com.example.food.dto.common.UserResponse;
 import com.example.food.service.AuthService.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

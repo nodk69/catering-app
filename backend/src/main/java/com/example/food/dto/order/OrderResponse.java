@@ -1,4 +1,4 @@
-package com.example.food.dto;
+package com.example.food.dto.order;
 
 import lombok.Builder;
 import lombok.Data;

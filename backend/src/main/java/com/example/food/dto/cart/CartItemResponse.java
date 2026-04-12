@@ -1,14 +1,15 @@
-package com.example.food.dto;
+package com.example.food.dto.cart;
 
 import lombok.Builder;
 import lombok.Data;
 
 @Data
 @Builder
-public class OrderItemResponse {
+public class CartItemResponse {
+    private Long cartItemId;
     private Long menuItemId;
     private String menuItemName;
     private Integer quantity;
     private Double price;
-    private Double subtotal;
+    private Double total;
 }

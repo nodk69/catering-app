@@ -1,8 +1,8 @@
 package com.example.food.controller;
 
-import com.example.food.dto.ApiResponse;
-import com.example.food.dto.BulkMenuItemRequest;
-import com.example.food.dto.MenuItemRequest;
+import com.example.food.dto.common.ApiResponse;
+import com.example.food.dto.menu.BulkMenuItemRequest;
+import com.example.food.dto.menu.MenuItemRequest;
 import com.example.food.entity.MenuItem;
 import com.example.food.service.MenuService;
 import lombok.RequiredArgsConstructor;

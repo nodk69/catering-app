@@ -1,6 +1,6 @@
 package com.example.food.controller;
 
-import com.example.food.dto.ApiResponse;
+import com.example.food.dto.common.ApiResponse;
 import com.example.food.entity.CateringService;
 import com.example.food.service.AdminService;
 import lombok.RequiredArgsConstructor;

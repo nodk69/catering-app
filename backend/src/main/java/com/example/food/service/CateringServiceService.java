@@ -1,7 +1,7 @@
 package com.example.food.service;
 
-import com.example.food.dto.CateringServiceResponse;
-import com.example.food.dto.CreateCateringServiceRequest;
+import com.example.food.dto.catering.CateringServiceResponse;
+import com.example.food.dto.catering.CreateCateringServiceRequest;
 import com.example.food.entity.CateringService;
 import com.example.food.entity.Users;
 import com.example.food.entity.Vendor;

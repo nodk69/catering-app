@@ -1,6 +1,9 @@
 package com.example.food.service.AuthService;
 
-import com.example.food.dto.*;
+import com.example.food.dto.auth.LoginRequest;
+import com.example.food.dto.auth.LoginResponse;
+import com.example.food.dto.auth.RegisterRequest;
+import com.example.food.dto.common.UserResponse;
 import com.example.food.entity.Users;
 import com.example.food.entity.Vendor;
 import com.example.food.enums.Role;
@@ -10,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;

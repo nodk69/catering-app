@@ -1,4 +1,4 @@
-package com.example.food.dto;
+package com.example.food.dto.auth;
 
 import com.example.food.enums.Role;
 import lombok.*;

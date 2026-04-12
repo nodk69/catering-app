@@ -1,8 +1,8 @@
 package com.example.food.service;
 
-import com.example.food.dto.OrderItemRequest;
-import com.example.food.dto.OrderResponse;
-import com.example.food.dto.PlaceOrderRequest;
+import com.example.food.dto.order.OrderItemRequest;
+import com.example.food.dto.order.OrderResponse;
+import com.example.food.dto.order.PlaceOrderRequest;
 import com.example.food.entity.*;
 import com.example.food.enums.OrderStatus;
 import com.example.food.repository.CateringOrderRepo;
