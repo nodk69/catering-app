@@ -1,4 +1,4 @@
-package com.example.food.service.AuthService;
+package com.example.food.service;
 
 import com.example.food.dto.auth.LoginRequest;
 import com.example.food.dto.auth.LoginResponse;
@@ -9,7 +9,10 @@ import com.example.food.entity.Vendor;
 import com.example.food.enums.Role;
 import com.example.food.repository.UserRepo;
 import com.example.food.repository.VendorRepo;
+import com.example.food.service.AuthService.JWTService;
+import com.example.food.service.AuthService.LoginAttemptService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -25,6 +28,7 @@ import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserService {
 
     private final UserRepo userRepo;
@@ -33,6 +37,7 @@ public class UserService {
     private final AuthenticationManager authenticationManager;
     private final JWTService jwtService;
     private final LoginAttemptService loginAttemptService;
+    private final EmailVerificationService emailVerificationService;
 
     private static final Pattern EMAIL_PATTERN =
             Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
@@ -75,6 +80,8 @@ public class UserService {
         user.setRole(assignedRole);
         user.setPhone(request.getPhone());
         user.setAddress(request.getAddress().trim());
+        user.setEmailVerified(false); // Not verified yet
+        user.setEnabled(true);
 
         Users savedUser = userRepo.save(user);
 
@@ -94,12 +101,22 @@ public class UserService {
             businessName = vendor.getBusinessName();
         }
 
+        // Send verification email
+        try {
+            emailVerificationService.sendVerificationEmail(normalizedEmail, user.getUsername());
+            log.info("Verification email sent to: {}", normalizedEmail);
+        } catch (Exception e) {
+            log.error("Failed to send verification email: {}", e.getMessage());
+            // Don't fail registration if email fails, but log it
+        }
+
         return UserResponse.builder()
                 .userId(savedUser.getUserId())
                 .username(savedUser.getUsername())
                 .email(savedUser.getEmail())
                 .role(savedUser.getRole())
                 .businessName(businessName)
+                .emailVerified(false)
                 .build();
     }
 
@@ -126,19 +143,26 @@ public class UserService {
                     throw new AuthenticationException("User data corrupted") {};
                 }
 
+                //Don't allow login until email is verified
+                if (!user.isEmailVerified()) {
+                    throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                            "Please verify your email before logging in. Check your inbox for the verification code.");
+                }
+
                 String token = jwtService.generateToken(user.getEmail(), user.getRole().name());
                 return LoginResponse.builder()
                         .message("Login successful")
                         .token(token)
+                        .emailVerified(true)
                         .build();
             }
         } catch (BadCredentialsException e) {
-            // Login failed - increment attempts
             loginAttemptService.loginFailed(normalizedEmail);
-
             int remainingAttempts = loginAttemptService.getRemainingAttempts(normalizedEmail);
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
                     String.format("Invalid credentials. %d attempts remaining.", remainingAttempts));
+        } catch (ResponseStatusException e) {
+            throw e; // Re-throw our custom exception
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication failed");
         }

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to FoodCatering</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+        .content {
+            padding: 40px;
+        }
+        .footer {
+            background: #f8f9fa;
+            padding: 20px 40px;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            padding: 14px 40px;
+            border-radius: 30px;
+            font-weight: bold;
+            margin: 10px;
+        }
+        .button-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>🎉 Welcome to FoodCatering!</h1>
+    </div>
+
+    <div class="content">
+        <h2>Hello <span th:text="${name}">User</span>! 👋</h2>
+
+        <p>Your email has been successfully verified. Welcome to the FoodCatering family!</p>
+
+        <p>You can now start exploring our wide range of catering services for your events.</p>
+
+        <div style="text-align: center; margin: 30px 0;">
+            <a th:href="${loginLink}" class="button">Log In to Your Account</a>
+            <a th:href="${exploreLink}" class="button button-secondary">Explore Caterers</a>
+        </div>
+
+        <p>If you have any questions, feel free to reach out to our support team.</p>
+    </div>
+
+    <div class="footer">
+        <p>© <span th:text="${currentYear}">2024</span> FoodCatering. All rights reserved.</p>
+        <p>This is an automated message, please do not reply to this email.</p>
+    </div>
+</div>
+</body>
+</html>

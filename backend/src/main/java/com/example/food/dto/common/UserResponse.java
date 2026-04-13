@@ -1,7 +1,10 @@
 package com.example.food.dto.common;
 
 import com.example.food.enums.Role;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
@@ -12,5 +15,6 @@ public class UserResponse {
     private String username;
     private String email;
     private Role role;
-    private String businessName; // Added this field
+    private String businessName;
+    private boolean emailVerified;
 }
