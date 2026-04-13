@@ -5,7 +5,7 @@ import com.example.food.dto.auth.LoginRequest;
 import com.example.food.dto.auth.LoginResponse;
 import com.example.food.dto.auth.RegisterRequest;
 import com.example.food.dto.common.UserResponse;
-import com.example.food.service.AuthService.UserService;
+import com.example.food.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;

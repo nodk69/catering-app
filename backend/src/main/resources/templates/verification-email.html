@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Verify Your Email - FoodCatering</title>
+    <style>
+        /* Reset styles for email clients */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.5;
+            color: #1a1a1a;
+            background: #fafafa;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .email-wrapper {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            background: #fafafa;
+        }
+
+        .email-container {
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+            border: 1px solid #f0f0f0;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #312e81 100%);
+            padding: 48px 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -10%;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .logo {
+            position: relative;
+            z-index: 1;
+            display: inline-block;
+            margin-bottom: 16px;
+        }
+
+        .logo-icon {
+            font-size: 48px;
+            line-height: 1;
+            margin-bottom: 12px;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+        }
+
+        .brand-name {
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: #ffffff;
+            margin-bottom: 8px;
+        }
+
+        .brand-tagline {
+            font-size: 14px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: rgba(255,255,255,0.7);
+        }
+
+        .content {
+            padding: 48px 40px;
+        }
+
+        .greeting {
+            font-size: 24px;
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 8px;
+            letter-spacing: -0.3px;
+        }
+
+        .welcome-text {
+            font-size: 16px;
+            color: #475569;
+            margin-bottom: 32px;
+            line-height: 1.6;
+        }
+
+        .code-box {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 20px;
+            padding: 32px 24px;
+            text-align: center;
+            margin: 32px 0;
+            border: 1px solid #e2e8f0;
+        }
+
+        .code-label {
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #64748b;
+            margin-bottom: 16px;
+        }
+
+        .code-value {
+            font-size: 52px;
+            font-weight: 700;
+            letter-spacing: 12px;
+            color: #0f172a;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+            background: #ffffff;
+            display: inline-block;
+            padding: 16px 32px;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            border: 1px solid #e2e8f0;
+        }
+
+        .info-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+            margin-top: 24px;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .info-icon {
+            font-size: 16px;
+        }
+
+        .button-wrapper {
+            text-align: center;
+            margin: 40px 0 24px;
+        }
+
+        .verify-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #0f172a 0%, #312e81 100%);
+            color: #ffffff;
+            text-decoration: none;
+            padding: 16px 48px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 16px;
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.2);
+            transition: all 0.2s ease;
+            border: none;
+            letter-spacing: 0.3px;
+        }
+
+        .verify-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(15, 23, 42, 0.25);
+        }
+
+        .alternative-text {
+            color: #94a3b8;
+            font-size: 14px;
+            margin-top: 16px;
+        }
+
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
+            margin: 40px 0 32px;
+        }
+
+        .help-section {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 24px;
+            margin-top: 32px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .help-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .help-text {
+            font-size: 14px;
+            color: #64748b;
+            line-height: 1.6;
+        }
+
+        .help-link {
+            color: #312e81;
+            text-decoration: none;
+            font-weight: 500;
+            border-bottom: 1px solid #c7d2fe;
+        }
+
+        .footer {
+            background: #fafafa;
+            padding: 32px 40px;
+            text-align: center;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .social-links {
+            margin-bottom: 24px;
+        }
+
+        .social-link {
+            display: inline-block;
+            margin: 0 12px;
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .social-link:hover {
+            color: #0f172a;
+        }
+
+        .copyright {
+            font-size: 13px;
+            color: #94a3b8;
+            margin-bottom: 16px;
+        }
+
+        .address {
+            font-size: 12px;
+            color: #cbd5e1;
+            line-height: 1.6;
+        }
+
+        .unsubscribe {
+            margin-top: 16px;
+            font-size: 12px;
+        }
+
+        .unsubscribe-link {
+            color: #94a3b8;
+            text-decoration: underline;
+        }
+
+        /* Mobile optimization */
+        @media (max-width: 480px) {
+            .email-wrapper {
+                padding: 20px 12px;
+            }
+
+            .header {
+                padding: 32px 24px;
+            }
+
+            .brand-name {
+                font-size: 26px;
+            }
+
+            .content {
+                padding: 32px 24px;
+            }
+
+            .greeting {
+                font-size: 20px;
+            }
+
+            .code-value {
+                font-size: 36px;
+                letter-spacing: 8px;
+                padding: 12px 20px;
+            }
+
+            .info-row {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .footer {
+                padding: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="email-wrapper">
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                <div class="logo-icon">🍽️</div>
+                <div class="brand-name">FoodCatering</div>
+                <div class="brand-tagline">Premium Catering</div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <h1 class="greeting">
+                Hello, <span th:text="${name}">there</span>! 👋
+            </h1>
+
+            <p class="welcome-text">
+                Welcome to <strong>FoodCatering</strong> — where exceptional culinary experiences begin.
+                To ensure the security of your account, please verify your email address using the code below.
+            </p>
+
+            <!-- Verification Code -->
+            <div class="code-box">
+                <div class="code-label">Your Verification Code</div>
+                <div class="code-value" th:text="${code}">000000</div>
+
+                <div class="info-row">
+                        <span class="info-item">
+                            <span class="info-icon">⏰</span>
+                            Expires in <span th:text="${expiryHours}">24</span> hours
+                        </span>
+                    <span class="info-item">
+                            <span class="info-icon">🔒</span>
+                            One-time use only
+                        </span>
+                </div>
+            </div>
+
+            <!-- CTA Button -->
+            <div class="button-wrapper">
+                <a th:href="${verificationLink}" class="verify-button">
+                    Verify Email Address →
+                </a>
+                <p class="alternative-text">
+                    Or enter the code manually on the verification page
+                </p>
+            </div>
+
+            <!-- Divider -->
+            <div class="divider"></div>
+
+            <!-- Help Section -->
+            <div class="help-section">
+                <div class="help-title">Need Help?</div>
+                <p class="help-text">
+                    If you're having trouble verifying your email, you can
+                    <a th:href="${baseUrl + '/resend-verification'}" class="help-link">request a new code</a>
+                    or contact our support team at
+                    <a href="mailto:support@foodcatering.com" class="help-link">support@foodcatering.com</a>
+                </p>
+                <p class="help-text" style="margin-top: 12px;">
+                    <strong>Didn't create an account?</strong><br>
+                    If you didn't sign up for FoodCatering, please ignore this email.
+                    Your email address may have been entered by mistake.
+                </p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="social-links">
+                <a href="#" class="social-link">Instagram</a>
+                <span style="color: #cbd5e1;">•</span>
+                <a href="#" class="social-link">Facebook</a>
+                <span style="color: #cbd5e1;">•</span>
+                <a href="#" class="social-link">LinkedIn</a>
+                <span style="color: #cbd5e1;">•</span>
+                <a href="#" class="social-link">X</a>
+            </div>
+
+            <div class="copyright">
+                © <span th:text="${currentYear}">2024</span> FoodCatering, Inc. All rights reserved.
+            </div>
+
+            <div class="address">
+                123 Culinary Avenue, Suite 400<br>
+                San Francisco, CA 94105
+            </div>
+
+            <div class="unsubscribe">
+                <a href="#" class="unsubscribe-link">Unsubscribe</a> •
+                <a href="#" class="unsubscribe-link">Privacy Policy</a> •
+                <a href="#" class="unsubscribe-link">Terms of Service</a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
