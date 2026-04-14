@@ -89,4 +89,22 @@ public class EmailService {
             return CompletableFuture.completedFuture(false);
         }
     }
+
+    public void sendEmail(String to, String subject, String content) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromEmail);
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(content, false); // Plain text
+
+            mailSender.send(message);
+            log.info("Email sent successfully to: {}", to);
+
+        } catch (MessagingException e) {
+            log.error("Failed to send email to: {}", to, e);
+        }
+    }
 }
