@@ -7,7 +7,6 @@ import com.example.food.dto.payment.PaymentConfirmationResponse;
 import com.example.food.dto.payment.PaymentVerificationRequest;
 import com.example.food.entity.*;
 import com.example.food.enums.OrderStatus;
-
 import com.example.food.enums.PaymentStatus;
 import com.example.food.repository.CateringOrderRepo;
 import com.example.food.repository.CateringServiceRepo;
@@ -44,7 +43,7 @@ public class OrderService {
 
     @Transactional
     public OrderResponse placeOrder(PlaceOrderRequest request, String email) {
-        // 1. Load User and Service
+        //Load User and Service
         Users user = userRepo.findByEmail(email);
         if (user == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
@@ -67,8 +66,7 @@ public class OrderService {
         String paymentMethod = request.getPaymentMethod() != null ?
                 request.getPaymentMethod().toUpperCase() : "COD";
 
-
-        // 2. Create Order
+        //Create Order
         CateringOrder order = new CateringOrder();
         order.setCustomer(user);
         order.setCateringService(cateringService);
@@ -81,7 +79,7 @@ public class OrderService {
         order.setPaymentMethod(paymentMethod);
         order.setPaymentStatus(PaymentStatus.PENDING);
 
-        // 3. Fetch all menu items
+        //Fetch all menu items
         List<Long> menuIds = request.getItems().stream()
                 .map(OrderItemRequest::getMenuItemId)
                 .distinct()
@@ -90,7 +88,7 @@ public class OrderService {
         Map<Long, MenuItem> menuMap = menuRepo.findAllById(menuIds).stream()
                 .collect(Collectors.toMap(MenuItem::getId, m -> m));
 
-        // Validate all items exist
+        //Validate all items exist
         if (menuMap.size() != menuIds.size()) {
             List<Long> missing = new ArrayList<>(menuIds);
             missing.removeAll(menuMap.keySet());
@@ -98,7 +96,7 @@ public class OrderService {
                     "Menu items not found: " + missing);
         }
 
-        // 4. Calculate totals and create order items
+        //Calculate totals and create order items
         double subtotal = 0.0;
         int totalQuantity = 0;
         List<OrderItem> orderItems = new ArrayList<>();
@@ -123,18 +121,18 @@ public class OrderService {
             totalQuantity += itemReq.getQuantity();
         }
 
-        // 5. Calculate service charge
+        //Calculate service charge
         double serviceCharge = cateringService.getPricePerPlate() * request.getGuestCount();
         double totalAmount = subtotal + serviceCharge;
 
-        // 6. Set order details
+        //Set order details
         order.setItems(orderItems);
         order.setSubtotal(roundToTwoDecimals(subtotal));
         order.setServiceCharge(roundToTwoDecimals(serviceCharge));
         order.setTotalAmount(roundToTwoDecimals(totalAmount));
         order.setTotalQuantity(totalQuantity);
 
-        // 7. Create Razorpay Order if payment method is RAZORPAY
+        //Create Razorpay Order if payment method is RAZORPAY
         Map<String, Object> razorpayOrderData = null;
         if ("RAZORPAY".equals(paymentMethod)) {
             try {
@@ -149,43 +147,43 @@ public class OrderService {
 
                 if (razorpayOrderData != null && !razorpayOrderData.containsKey("error")) {
                     order.setRazorpayOrderId((String) razorpayOrderData.get("orderId"));
-                    log.info("✅ Razorpay order created: {} for amount: ₹{}",
+                    log.info("Razorpay order created: {} for amount: ₹{}",
                             order.getRazorpayOrderId(), totalAmount);
                 } else {
                     // Fallback to COD if Razorpay fails
-                    log.warn("⚠️ Razorpay order creation failed, falling back to COD");
+                    log.warn("⚠Razorpay order creation failed, falling back to COD");
                     order.setPaymentMethod("COD");
                     razorpayOrderData = null;
                 }
             } catch (Exception e) {
-                log.error("❌ Razorpay error, falling back to COD: {}", e.getMessage());
+                log.error("Razorpay error, falling back to COD: {}", e.getMessage());
                 order.setPaymentMethod("COD");
                 razorpayOrderData = null;
             }
         }
 
-        // 8. Save order
+        //Save order
         CateringOrder savedOrder = orderRepo.save(order);
 
-        // 9. Clear cart if needed
+        //Clear cart if needed
         if (request.isFromCart()) {
             cartService.clearCart(email);
         }
 
-        // 10. Send order confirmation email
+        // Send order confirmation email
         try {
             sendOrderConfirmationEmail(savedOrder);
         } catch (Exception e) {
             log.error("Failed to send order confirmation email: {}", e.getMessage());
         }
 
-        log.info("✅ Order placed successfully: {} by user: {} with payment: {}",
+        log.info("Order placed successfully: {} by user: {} with payment: {}",
                 savedOrder.getOrderId(), email, savedOrder.getPaymentMethod());
 
-        // 11. Build response
+        //Build response
         OrderResponse response = mapToOrderResponse(savedOrder);
 
-        // Add Razorpay data to response
+        //Add Razorpay data to response
         if (razorpayOrderData != null) {
             response.setRazorpayOrderId((String) razorpayOrderData.get("orderId"));
             response.setRazorpayKey((String) razorpayOrderData.get("key"));
@@ -196,12 +194,33 @@ public class OrderService {
         return response;
     }
 
+
+//     Confirm and update payment status (without user email - for backward compatibility)
+
     @Transactional
     public PaymentConfirmationResponse confirmAndUpdatePayment(PaymentVerificationRequest request) {
+        return confirmAndUpdatePayment(request, null);
+    }
+
+
+//      Confirm and update payment with user email for ownership check
+//       FIXED: Added ownership check to prevent IDOR vulnerability
+    @Transactional
+    public PaymentConfirmationResponse confirmAndUpdatePayment(
+            PaymentVerificationRequest request, String userEmail) {
+
         CateringOrder order = orderRepo.findById(request.getOrderId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found"));
 
-        // Validate order state
+        //SECURITY FIX: Verify order belongs to authenticated user
+        if (userEmail != null && order.getCustomer() != null &&
+                !order.getCustomer().getEmail().equals(userEmail)) {
+            log.warn("⚠Unauthorized payment confirmation attempt - User: {}, Order: {}",
+                    userEmail, request.getOrderId());
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied to this order");
+        }
+
+        //Validate order state
         if (order.getPaymentStatus() == PaymentStatus.SUCCESS) {
             return PaymentConfirmationResponse.builder()
                     .success(true)
@@ -213,7 +232,7 @@ public class OrderService {
                     .build();
         }
 
-        // Verify signature
+        // Verify signature using SDK
         boolean isSignatureValid = razorpayService.verifyPaymentSignature(
                 order.getRazorpayOrderId(),
                 request.getPaymentId(),
@@ -223,7 +242,7 @@ public class OrderService {
         if (!isSignatureValid) {
             order.setPaymentStatus(PaymentStatus.FAILED);
             orderRepo.save(order);
-            log.error("❌ Payment signature verification failed for order: {}", order.getOrderId());
+            log.error("Payment signature verification failed for order: {}", order.getOrderId());
 
             return PaymentConfirmationResponse.builder()
                     .success(false)
@@ -240,7 +259,7 @@ public class OrderService {
             String paymentStatus = razorpayService.getPaymentStatus(request.getPaymentId());
             order.setPaymentStatus(PaymentStatus.FAILED);
             orderRepo.save(order);
-            log.error("❌ Payment not captured for order: {}. Status: {}",
+            log.error("Payment not captured for order: {}. Status: {}",
                     order.getOrderId(), paymentStatus);
 
             return PaymentConfirmationResponse.builder()
@@ -252,7 +271,7 @@ public class OrderService {
                     .build();
         }
 
-        // Update order with payment success
+        //Update order with payment success
         order.setPaymentStatus(PaymentStatus.SUCCESS);
         order.setRazorpayPaymentId(request.getPaymentId());
         order.setRazorpaySignature(request.getSignature());
@@ -268,7 +287,7 @@ public class OrderService {
             log.error("Failed to send payment confirmation email: {}", e.getMessage());
         }
 
-        log.info("✅ Payment confirmed for order: {}, amount: ₹{}, paymentId: {}",
+        log.info("Payment confirmed for order: {}, amount: ₹{}, paymentId: {}",
                 order.getOrderId(), order.getTotalAmount(), request.getPaymentId());
 
         return PaymentConfirmationResponse.builder()
@@ -367,12 +386,12 @@ public class OrderService {
                     "contact", order.getCustomer().getPhone()
             ));
 
-            log.info("✅ Payment retry initiated for order: {}", order.getOrderId());
+            log.info("Payment retry initiated for order: {}", order.getOrderId());
 
             return response;
 
         } catch (RazorpayException e) {
-            log.error("❌ Failed to retry payment for order: {}: {}", orderId, e.getMessage());
+            log.error("Failed to retry payment for order: {}: {}", orderId, e.getMessage());
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                     "Payment retry failed: " + e.getMessage());
         }
@@ -402,7 +421,7 @@ public class OrderService {
 
         orderRepo.save(order);
 
-        log.info("✅ Order {} cancelled by customer {}", orderId, email);
+        log.info("Order {} cancelled by customer {}", orderId, email);
     }
 
     // Email methods
@@ -475,7 +494,6 @@ public class OrderService {
         );
     }
 
-    // Existing methods (keep them as they are)
     public List<OrderResponse> getMyOrders(String email) {
         return orderRepo.findByCustomer_EmailOrderByOrderDateDesc(email).stream()
                 .map(this::mapToOrderResponse)
@@ -571,9 +589,9 @@ public class OrderService {
                 .totalQuantity(order.getTotalQuantity())
                 .status(order.getStatus().name())
                 .orderDate(order.getOrderDate())
-                .paymentMethod(order.getPaymentMethod())  //The chosen method
+                .paymentMethod(order.getPaymentMethod())
                 .paymentStatus(order.getPaymentStatus() != null ? order.getPaymentStatus().name() : null)
-                .availablePaymentMethods(getAvailablePaymentMethods())  //Map of available options
+                .availablePaymentMethods(getAvailablePaymentMethods())
                 .build();
 
         return response;
@@ -587,24 +605,17 @@ public class OrderService {
         // COD is always available
         methods.put("COD", true);
 
-        // Razorpay is available if configured
-        boolean razorpayAvailable = false;
-        try {
-            razorpayAvailable = razorpayService != null;
-        } catch (Exception e) {
-            razorpayAvailable = false;
-        }
-        methods.put("RAZORPAY", razorpayAvailable);
+        // Razorpay availability depends on service configuration
+        methods.put("RAZORPAY", isRazorpayAvailable());
 
         return methods;
     }
 
-    /**
-     * Check if Razorpay is properly configured and available
-     */
+
+//     Check if Razorpay is properly configured and available
+
     private boolean isRazorpayAvailable() {
         try {
-            // Check if service exists and has valid configuration
             return razorpayService != null && razorpayService.isConfigured();
         } catch (Exception e) {
             log.warn("Razorpay not available: {}", e.getMessage());

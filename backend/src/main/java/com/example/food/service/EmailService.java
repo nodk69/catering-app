@@ -68,7 +68,7 @@ public class EmailService {
 
             helper.setFrom(fromEmail);
             helper.setTo(to);
-            helper.setSubject("🎉 Welcome to FoodCatering!");
+            helper.setSubject("Welcome to FoodCatering!");
 
             Context context = new Context();
             context.setVariable("name", name);
@@ -90,6 +90,8 @@ public class EmailService {
         }
     }
 
+
+    @Async
     public void sendEmail(String to, String subject, String content) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -101,10 +103,10 @@ public class EmailService {
             helper.setText(content, false); // Plain text
 
             mailSender.send(message);
-            log.info("Email sent successfully to: {}", to);
+            log.info("📧 Email sent successfully to: {} with subject: {}", to, subject);
 
         } catch (MessagingException e) {
-            log.error("Failed to send email to: {}", to, e);
+            log.error("Failed to send email to {}: {}", to, e.getMessage());
         }
     }
 }

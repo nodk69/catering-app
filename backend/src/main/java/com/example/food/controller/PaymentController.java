@@ -32,11 +32,16 @@ public class PaymentController {
                 .build());
     }
 
+
+//     FIXED: Pass authenticated user email for ownership check
     @PostMapping("/verify")
     public ResponseEntity<ApiResponse<PaymentConfirmationResponse>> verifyPayment(
-            @RequestBody PaymentVerificationRequest request) {
+            @RequestBody PaymentVerificationRequest request,
+            Principal principal) {
 
-        PaymentConfirmationResponse response = orderService.confirmAndUpdatePayment(request);
+        // Pass user email for security check
+        String userEmail = principal != null ? principal.getName() : null;
+        PaymentConfirmationResponse response = orderService.confirmAndUpdatePayment(request, userEmail);
 
         if (response.isSuccess()) {
             return ResponseEntity.ok(ApiResponse.<PaymentConfirmationResponse>builder()

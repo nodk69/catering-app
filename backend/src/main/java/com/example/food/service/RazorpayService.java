@@ -1,9 +1,6 @@
 package com.example.food.service;
 
-import com.razorpay.Order;
-import com.razorpay.Payment;
-import com.razorpay.RazorpayClient;
-import com.razorpay.RazorpayException;
+import com.razorpay.*;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
@@ -12,8 +9,6 @@ import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -84,32 +79,25 @@ public class RazorpayService {
     }
 
     /**
-     * Verify payment signature
+     * Verify payment signature using Razorpay SDK
+     * ✅ FIXED: Now uses SDK's built-in verification (constant-time comparison)
      */
     public boolean verifyPaymentSignature(String orderId, String paymentId, String signature) {
         try {
-            String payload = orderId + "|" + paymentId;
-            String generatedSignature = generateHmacSHA256(payload, keySecret);
+            JSONObject attributes = new JSONObject();
+            attributes.put("razorpay_order_id", orderId);
+            attributes.put("razorpay_payment_id", paymentId);
+            attributes.put("razorpay_signature", signature);
 
-            if (generatedSignature.equals(signature)) {
-                log.info("✅ Payment signature verified for order: {}", orderId);
-                return true;
-            }
+            // Use SDK's built-in verification (constant-time comparison)
+            Utils.verifyPaymentSignature(attributes, keySecret);
 
-            // Alternative verification
-            String alternativePayload = paymentId + "|" + orderId;
-            String alternativeSignature = generateHmacSHA256(alternativePayload, keySecret);
+            log.info("✅ Payment signature verified for order: {}", orderId);
+            return true;
 
-            if (alternativeSignature.equals(signature)) {
-                log.info("✅ Payment signature verified (alternative) for order: {}", orderId);
-                return true;
-            }
-
-            log.warn("❌ Payment signature verification failed for order: {}", orderId);
-            return false;
-
-        } catch (Exception e) {
-            log.error("❌ Error verifying payment signature: {}", e.getMessage());
+        } catch (RazorpayException e) {
+            log.error("❌ Payment signature verification failed for order {}: {}",
+                    orderId, e.getMessage());
             return false;
         }
     }
@@ -175,24 +163,9 @@ public class RazorpayService {
         }
     }
 
-    private String generateHmacSHA256(String data, String secret) throws Exception {
-        Mac mac = Mac.getInstance("HmacSHA256");
-        SecretKeySpec secretKeySpec = new SecretKeySpec(secret.getBytes(), "HmacSHA256");
-        mac.init(secretKeySpec);
-
-        byte[] hash = mac.doFinal(data.getBytes());
-        StringBuilder hexString = new StringBuilder();
-
-        for (byte b : hash) {
-            String hex = Integer.toHexString(0xff & b);
-            if (hex.length() == 1) hexString.append('0');
-            hexString.append(hex);
-        }
-
-        return hexString.toString();
-    }
-
-    // Add this method to RazorpayService
+    /**
+     * Check if Razorpay is properly configured
+     */
     public boolean isConfigured() {
         try {
             return razorpayClient != null && keyId != null && !keyId.isEmpty();
