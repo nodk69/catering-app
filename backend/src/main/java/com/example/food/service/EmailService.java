@@ -68,7 +68,7 @@ public class EmailService {
 
             helper.setFrom(fromEmail);
             helper.setTo(to);
-            helper.setSubject("🎉 Welcome to FoodCatering!");
+            helper.setSubject("Welcome to FoodCatering!");
 
             Context context = new Context();
             context.setVariable("name", name);
@@ -87,6 +87,26 @@ public class EmailService {
         } catch (MessagingException e) {
             log.error("Failed to send welcome email to: {}", to, e);
             return CompletableFuture.completedFuture(false);
+        }
+    }
+
+
+    @Async
+    public void sendEmail(String to, String subject, String content) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromEmail);
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(content, false); // Plain text
+
+            mailSender.send(message);
+            log.info("📧 Email sent successfully to: {} with subject: {}", to, subject);
+
+        } catch (MessagingException e) {
+            log.error("Failed to send email to {}: {}", to, e.getMessage());
         }
     }
 }

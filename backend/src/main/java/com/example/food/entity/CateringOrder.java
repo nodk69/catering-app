@@ -1,6 +1,7 @@
 package com.example.food.entity;
 
 import com.example.food.enums.OrderStatus;
+import com.example.food.enums.PaymentStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDate;
@@ -76,4 +77,17 @@ public class CateringOrder {
                 .mapToDouble(item -> item.getPrice() * item.getQuantity())
                 .sum();
     }
+
+    // Payment related fields
+    private String paymentMethod; // "COD", "RAZORPAY"
+
+    @Enumerated(EnumType.STRING)
+    private PaymentStatus paymentStatus;
+
+    private String razorpayOrderId;
+    private String razorpayPaymentId;
+    private String razorpaySignature;
+
+    private LocalDateTime paidAt;
 }
+

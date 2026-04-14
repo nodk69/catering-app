@@ -13,4 +13,6 @@ public class PlaceOrderRequest {
     private String eventType;
     private Integer guestCount;
     private boolean fromCart; // To know if order is from cart
+
+    private String paymentMethod = "COD";
 }
